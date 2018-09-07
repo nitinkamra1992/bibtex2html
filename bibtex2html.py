@@ -200,7 +200,7 @@ def get_html(ref_tuple):
 #     return citation, None
 
 
-def bib_to_html(args):
+def bibtex2html(args):
     bib = args.bib
     outfile = args.outfile
 
@@ -234,4 +234,4 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     # Generate html bibliography from bib file/(s)
-    bib_to_html(args)
+    bibtex2html(args)
