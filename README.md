@@ -1,6 +1,6 @@
 # bibtex2html
 
-This tool allows converting a bibtex file or a folder with multiple bibtex files into an HTML bibliography.
+This tool converts a bibtex file or a folder with multiple bibtex files into an HTML bibliography.
 
 ## Compatibility
 
