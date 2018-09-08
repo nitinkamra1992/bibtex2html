@@ -10,6 +10,30 @@ import datetime
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.customization import convert_to_unicode, author, editor, page_double_hyphen
 
+################# Constants #################
+
+month_dict = {
+    'January': 1, 'Jan': 1,
+    'February': 2, 'Feb': 2,
+    'March': 3, 'Mar': 3,
+    'April': 4, 'Apr': 4,
+    'May': 5,
+    'June': 6, 'Jun': 6,
+    'July': 7, 'Jul': 7,
+    'August': 8, 'Aug': 8,
+    'September': 9, 'Sept': 9, 'Sep': 9,
+    'October': 10, 'Oct': 10,
+    'November': 11, 'Nov': 11,
+    'December': 12, 'Dec': 12
+}
+
+clr_author = '#900'
+# clr_venue_time = '#090'
+clr_venue_time = '#666666'
+clr_hyperlink = '#1772d0'
+bullet_spacing = 8
+
+global br_sym
 
 ################# Helper Methods #################
 
@@ -63,32 +87,6 @@ def comp_time(ref_tuple):
     assert 'year' in bibentry, "{} is missing field: year".format(bibID)
     year = int(bibentry['year'])
     month = bibentry.get('month', None)
-    month_dict = {
-        'January': 1,
-        'Jan': 1,
-        'February': 2,
-        'Feb': 2,
-        'March': 3,
-        'Mar': 3,
-        'April': 4,
-        'Apr': 4,
-        'May': 5,
-        'June': 6,
-        'Jun': 6,
-        'July': 7,
-        'Jul': 7,
-        'August': 8,
-        'Aug': 8,
-        'September': 9,
-        'Sept': 9,
-        'Sep': 9,
-        'October': 10,
-        'Oct': 10,
-        'November': 11,
-        'Nov': 11,
-        'December': 12,
-        'Dec': 12
-    }
     month = month_dict[month] if month is not None else 1
     return datetime.datetime(year, month, 1)
 
@@ -114,7 +112,55 @@ def get_authors_list(ref_tuple):
         return ', '.join(processed_authors_list)
 
 
-def get_html(ref_tuple):
+def process_title(title, entrytype, fmt):
+    if fmt == 'std':
+        if entrytype.lower() in ['inproceedings', 'article']:
+            return title
+        else:
+            return '<i>{}</i>'.format(title)
+    elif fmt == 'std_b' or fmt.startswith('str'):
+        return '<b>{}</b>'.format(title)
+    else:
+        print('Incorrect formatting option: {}'.format(fmt))
+
+
+def process_authors(authors, entrytype, fmt):
+    if fmt.startswith('std') or fmt == 'str':
+        return authors
+    elif fmt == 'str_c':
+        return '<span style="color:{}">{}</span>'.format(clr_author, authors)
+    else:
+        print('Incorrect formatting option: {}'.format(fmt))
+
+
+def process_venue(venue, entrytype, fmt):
+    if fmt.startswith('std'):
+        if entrytype.lower() in ['inproceedings', 'article']:
+            return '<i>{}</i>'.format(venue)
+        else:
+            return venue
+    elif fmt == 'str':
+        return venue
+    elif fmt == 'str_c':
+        return '<span style="color:{}">{}</span>'.format(clr_venue_time, venue)
+    else:
+        print('Incorrect formatting option: {}'.format(fmt))
+
+
+def process_time(time, entrytype, fmt):
+    if fmt.startswith('std') or fmt =='str':
+        return time
+    elif fmt == 'str_c':
+        return '<span style="color:{}">{}</span>'.format(clr_venue_time, time)
+    else:
+        print('Incorrect formatting option: {}'.format(fmt))
+
+
+def process_hyperlink(url, text, entrytype, fmt):
+    return '[<a href={} style="color:{}">{}</a>]'.format(url, clr_hyperlink, text)
+
+
+def get_html(ref_tuple, fmt):
     bibID, bibentry = ref_tuple
 
     # Check validity of reference
@@ -128,76 +174,66 @@ def get_html(ref_tuple):
     time = bibentry['year']
     if 'month' in bibentry:
         time = bibentry['month'] + ' ' + time
+    if bibentry['ENTRYTYPE'].lower() == 'book' and 'subtitle' in bibentry:
+        title = title + '. ' + bibentry['subtitle']
 
-    # Form HTML bibliography entry with additional fields
-    if bibentry['ENTRYTYPE'].lower() == 'book':
-        if 'subtitle' in bibentry:
-            title = title + '. ' + bibentry['subtitle']
-        html = authors + '. <i>' + title + '</i>. '
-        if 'publisher' in bibentry:
-            html = html + bibentry['publisher'] + ', '
+    # Process necessary fields
+    authors = process_authors(authors, bibentry['ENTRYTYPE'].lower(), fmt)
+    title = process_title(title, bibentry['ENTRYTYPE'].lower(), fmt)
+    time = process_time(time, bibentry['ENTRYTYPE'].lower(), fmt)
 
-    elif 'thesis' in bibentry['ENTRYTYPE'].lower():
-        html = authors + '. <i>' + title + '</i>. '
-        if bibentry['ENTRYTYPE'].lower() == 'phdthesis':
-            html = html + 'PhD thesis, '
-        elif bibentry['ENTRYTYPE'].lower() == 'mastersthesis':
-            html = html + 'Masters thesis, '
-        if 'school' in bibentry:
-            html = html + bibentry['school'] + ', '
-
-    elif bibentry['ENTRYTYPE'].lower() == 'inproceedings':
+    # Form HTML bibliography entry according to fmt with additional fields
+    ## Standard citation format (std)
+    if fmt.startswith('std'):
         html = authors + '. ' + title + '. '
-        html = html + 'In <i>' + bibentry['booktitle'] + '</i>, '
-        if 'pages' in bibentry:
-            html = html + 'pages ' + bibentry['pages'] + ', '
 
-    elif bibentry['ENTRYTYPE'].lower() == 'article':
-        html = authors + '. ' + title + '. '
-        html = html + '<i>' + bibentry['journal'] + '</i>, '
-        if 'volume' in bibentry and 'number' in bibentry and 'pages' in bibentry:
-            html = html + bibentry['volume'] + '(' + bibentry['number'] + '):' + bibentry['pages'] + ', '
+        if bibentry['ENTRYTYPE'].lower() == 'book':
+            if 'publisher' in bibentry:
+                html = html + bibentry['publisher'] + ', '
 
-    else:
-        html = authors + '. <i>' + title + '</i>. '
+        elif 'thesis' in bibentry['ENTRYTYPE'].lower():
+            if bibentry['ENTRYTYPE'].lower() == 'phdthesis':
+                html = html + 'PhD thesis, '
+            elif bibentry['ENTRYTYPE'].lower() == 'mastersthesis':
+                html = html + 'Masters thesis, '
+            if 'school' in bibentry:
+                html = html + bibentry['school'] + ', '
 
-    html = html + time + '.'
+        elif bibentry['ENTRYTYPE'].lower() == 'inproceedings':
+            html = html + 'In ' + process_venue(bibentry['booktitle'], bibentry['ENTRYTYPE'], fmt) + ', '
+            if 'pages' in bibentry:
+                html = html + 'pages ' + bibentry['pages'] + ', '
 
-    # Add paper link if present in bibentry
-    if 'url' in bibentry:
-        html = html + '\n<a href={}>{}</a>'.format(bibentry['url'], 'Paper')
+        elif bibentry['ENTRYTYPE'].lower() == 'article':
+            html = html + process_venue(bibentry['journal'], bibentry['ENTRYTYPE'], fmt) + ', '
+            if 'volume' in bibentry and 'number' in bibentry and 'pages' in bibentry:
+                html = html + bibentry['volume'] + '(' + bibentry['number'] + '):' + bibentry['pages'] + ', '
+
+        html = html + time
+
+        # Add paper link if present in bibentry
+        if 'url' in bibentry:
+            html = html + '\n' + process_hyperlink(bibentry['url'], 'Paper', bibentry['ENTRYTYPE'].lower(), fmt)
+
+    ## Structured citation format (str)
+    elif fmt.startswith('str'):
+        html = title + '\n{}'.format(br_sym) + authors + '\n{}'.format(br_sym)
+
+        if bibentry['ENTRYTYPE'].lower() == 'inproceedings':
+            html = html + process_venue(bibentry['booktitle'], bibentry['ENTRYTYPE'], fmt) + ', '
+        elif bibentry['ENTRYTYPE'].lower() == 'article':
+            html = html + process_venue(bibentry['journal'], bibentry['ENTRYTYPE'], fmt) + ', '
+        elif 'thesis' in bibentry['ENTRYTYPE'].lower() and 'school' in bibentry:
+            html = html + process_venue(bibentry['school'], bibentry['ENTRYTYPE'], fmt) + ', '
+        elif bibentry['ENTRYTYPE'].lower() == 'book' and 'publisher' in bibentry:
+            html = html + process_venue(bibentry['publisher'], bibentry['ENTRYTYPE'], fmt) + ', '
+        html = html + time
+
+        # Add paper link if present in bibentry
+        if 'url' in bibentry:
+            html = html + '\n{}'.format(br_sym) + process_hyperlink(bibentry['url'], 'Paper', bibentry['ENTRYTYPE'].lower(), fmt)
 
     return html
-
-
-# def process_full(self, ref):
-#     authors = self.process_authors(ref)[0]
-#     title = self.process_title(ref)[0]
-#     time = ref['year']
-
-#     if 'month' in ref:
-#         time = ref['month'] + ' ' + time
-#     if ref['ENTRYTYPE'].lower() == 'book' and 'subtitle' in ref:
-#         title = title + '. ' + ref['subtitle'] + '.'
-
-#     citation = '**' + title + '**\n  *' + authors + '*\n  '
-#     if ref['ENTRYTYPE'].lower() == 'book':
-#         if 'publisher' in ref:
-#             citation = citation + ref['publisher'] + ', '
-#     elif 'thesis' in ref['ENTRYTYPE'].lower():
-#         if ref['ENTRYTYPE'].lower() == 'phdthesis':
-#             citation = citation + 'PhD thesis, '
-#         elif ref['ENTRYTYPE'].lower() == 'mastersthesis':
-#             citation = citation + 'Masters thesis, '
-#         if 'school' in ref:
-#             citation = citation + ref['school'] + ', '
-#     elif ref['ENTRYTYPE'].lower() == 'inproceedings':
-#         citation = citation + ref['booktitle'] + ', '            
-#     elif ref['ENTRYTYPE'].lower() == 'article':
-#         citation = citation + ref['journal'] + ', '
-#     citation = citation + time
-
-#     return citation, None
 
 
 def bibtex2html(args):
@@ -212,26 +248,38 @@ def bibtex2html(args):
     sorted_refslist = sorted(refslist, key=comp_time)
     sorted_refslist.reverse()
 
-    html_string = ''
+    # Generate html string
+    html_string = '<ul>'
     for ref in sorted_refslist:
-        html_string = html_string + '\n<p>' + get_html(ref) + '</p>'
+        html_string = html_string + '\n<li style="margin: {}px 0">'.format(bullet_spacing) + get_html(ref, args.format) + '</li>'
+    html_string = html_string + '\n</ul>'
 
+    # Write html string to file
     with open(outfile, 'w') as outf:
         outf.write(html_string)
 
 
 if __name__ == "__main__":
     # Generate argument parser
-    arg_parser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         description="Convert a bibtex file or directory containing bibtex files to an HTML bibliography.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Add and parse arguments
-    arg_parser.add_argument("-b", "--bib",
+    parser.add_argument("-b", "--bib",
         help="Path to the BibTeX file or directory containing BibTeX files.")
-    arg_parser.add_argument("-o", "--outfile",
+    parser.add_argument("-o", "--outfile",
         help="Path for the output HTML file.")
-    args = arg_parser.parse_args()
+    parser.add_argument("-f", "--format",
+        default="str",
+        help="Format of HTML bibliography [std, std_b, str, str_c].")
+    parser.add_argument("-nobr", "--no_break",
+        help='Flag to prevent any <br> tags in the generated HTML.',
+        default=False, action='store_true')
+    args = parser.parse_args()
+
+    global br_sym
+    br_sym = '' if args.no_break else '<br>'
 
     # Generate html bibliography from bib file/(s)
     bibtex2html(args)
