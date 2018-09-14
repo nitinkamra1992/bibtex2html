@@ -13,18 +13,18 @@ from bibtexparser.customization import convert_to_unicode, author, editor, page_
 ################# Constants #################
 
 month_dict = {
-    'January': 1, 'Jan': 1,
-    'February': 2, 'Feb': 2,
-    'March': 3, 'Mar': 3,
-    'April': 4, 'Apr': 4,
-    'May': 5,
-    'June': 6, 'Jun': 6,
-    'July': 7, 'Jul': 7,
-    'August': 8, 'Aug': 8,
-    'September': 9, 'Sept': 9, 'Sep': 9,
-    'October': 10, 'Oct': 10,
-    'November': 11, 'Nov': 11,
-    'December': 12, 'Dec': 12
+    'January': 1, 'Jan': 1, '1': 1,
+    'February': 2, 'Feb': 2, '2': 2,
+    'March': 3, 'Mar': 3, '3': 3,
+    'April': 4, 'Apr': 4, '4': 4,
+    'May': 5, '5': 5,
+    'June': 6, 'Jun': 6, '6': 6,
+    'July': 7, 'Jul': 7, '7': 7,
+    'August': 8, 'Aug': 8, '8': 8,
+    'September': 9, 'Sept': 9, 'Sep': 9, '9': 9,
+    'October': 10, 'Oct': 10, '10': 10,
+    'November': 11, 'Nov': 11, '11': 11,
+    'December': 12, 'Dec': 12, '12': 12
 }
 
 clr_author = '#900'
