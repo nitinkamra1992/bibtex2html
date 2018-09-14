@@ -167,6 +167,10 @@ def get_html(ref_tuple, fmt):
     assert 'author' in bibentry or 'editor' in bibentry, 'Missing field author/editor in {}'.format(bibID)
     assert 'title' in bibentry, 'Missing field title in {}'.format(bibID)
     assert 'year' in bibentry, 'Missing field year in {}'.format(bibID)
+    if bibentry['ENTRYTYPE'].lower() == 'inproceedings':
+        assert 'booktitle' in bibentry, 'Missing booktitle in {}'.format(bibID)
+    if bibentry['ENTRYTYPE'].lower() == 'article':
+        assert 'journal' in bibentry, 'Missing journal in {}'.format(bibID)
 
     # Extract necessary fields
     authors = get_authors_list(ref_tuple)
