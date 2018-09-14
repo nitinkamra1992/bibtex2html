@@ -12,7 +12,7 @@ from bibtexparser.customization import convert_to_unicode, author, editor, page_
 
 ################# Constants #################
 
-month_dict = {
+month_to_num = {
     'January': 1, 'Jan': 1, '1': 1,
     'February': 2, 'Feb': 2, '2': 2,
     'March': 3, 'Mar': 3, '3': 3,
@@ -27,6 +27,16 @@ month_dict = {
     'December': 12, 'Dec': 12, '12': 12
 }
 
+num_month_to_abbrv_text = {
+    1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May',
+    6: 'Jun', 7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct',
+    11: 'Nov', 12: 'Dec'}
+
+num_month_to_full_text = {
+    1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May',
+    6: 'June', 7: 'July', 8: 'August', 9: 'September', 10: 'October',
+    11: 'November', 12: 'December'}
+
 clr_author = '#900'
 # clr_venue_time = '#090'
 clr_venue_time = '#666666'
@@ -34,6 +44,7 @@ clr_hyperlink = '#1772d0'
 bullet_spacing = 8
 
 global br_sym
+global m_fmt
 
 ################# Helper Methods #################
 
@@ -87,7 +98,7 @@ def comp_time(ref_tuple):
     assert 'year' in bibentry, "{} is missing field: year".format(bibID)
     year = int(bibentry['year'])
     month = bibentry.get('month', None)
-    month = month_dict[month] if month is not None else 1
+    month = month_to_num[month] if month is not None else 1
     return datetime.datetime(year, month, 1)
 
 
@@ -133,6 +144,14 @@ def process_authors(authors, entrytype, fmt):
         print('Incorrect formatting option: {}'.format(fmt))
 
 
+def process_month(month):
+    if m_fmt == 'abbrv':
+        return num_month_to_abbrv_text[month_to_num[month]]
+    elif m_fmt == 'full':
+        return num_month_to_full_text[month_to_num[month]]
+    else:
+        print('Incorrect month formatting option: {}'.format(m_fmt))
+
 def process_venue(venue, entrytype, fmt):
     if fmt.startswith('std'):
         if entrytype.lower() in ['inproceedings', 'article']:
@@ -177,7 +196,7 @@ def get_html(ref_tuple, fmt):
     title = bibentry['title']
     time = bibentry['year']
     if 'month' in bibentry:
-        time = bibentry['month'] + ' ' + time
+        time = process_month(bibentry['month']) + ' ' + time
     if bibentry['ENTRYTYPE'].lower() == 'book' and 'subtitle' in bibentry:
         title = title + '. ' + bibentry['subtitle']
 
@@ -277,6 +296,9 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--format",
         default="str",
         help="Format of HTML bibliography [std, std_b, str, str_c].")
+    parser.add_argument("-m_fmt", "--month_format",
+        help='Format to display month [abbrv, full].',
+        choices=['abbrv', 'full'], default='abbrv')
     parser.add_argument("-nobr", "--no_break",
         help='Flag to prevent any <br> tags in the generated HTML.',
         default=False, action='store_true')
@@ -284,6 +306,8 @@ if __name__ == "__main__":
 
     global br_sym
     br_sym = '' if args.no_break else '<br>'
+    global m_fmt
+    m_fmt = args.month_format
 
     # Generate html bibliography from bib file/(s)
     bibtex2html(args)

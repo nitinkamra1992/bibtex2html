@@ -26,6 +26,7 @@ It accepts the following command-line arguments:
 -b, --bib: Path to the BibTeX file or directory containing BibTeX files.
 -o, --outfile: Path for the output HTML file.
 -f, --format (default=str): Format of HTML bibliography [std, std_b, str, str_c].
+-m_fmt, --month_format (default=abbrv): Format of month [abbrv, full].
 -nobr, --no_break (default=False): Flag to prevent any <br> tags in the generated HTML (see **Note 3** below).
 ```
 
