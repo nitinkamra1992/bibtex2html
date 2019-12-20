@@ -28,14 +28,16 @@ It accepts the following command-line arguments:
 -f, --format (default=str): Format of HTML bibliography [std, std_b, str, str_c].
 -m_fmt, --month_format (default=abbrv): Format of month [abbrv, full].
 -nobr, --no_break (default=False): Flag to prevent any <br> tags in the generated HTML (see **Note 3** below).
+-yb, --year_breaks (default=False): Flag to add year headers between the reverse chronologically sorted list of publications.
+-yc, --year_cutoff (int, default=None): If <year_breaks> is True, all publications before the <year_cutoff> are grouped together.
 ```
 
 The HTML bibliography is generated in a reverse chronological order and a paper link is also shown at the end of each reference if the `URL` field is present in the corresponding bibentry.
 Note that even though bibtex supports citations for many entry types, this tool mostly focuses on the following entry types: `inproceedings`, `article`, `book`, `phdthesis` and `mastersthesis`. When citing other entry types it still produces a basic citation with the `author`, `title` and `year` fields (see **Note 1** below).
 
-The tool supports four <format> values currently:
+The tool currently supports four values for the <format> argument:
 ```
-std: Standard citation style bibliography with a paper link at the end (if URL present in bibentry).
+std: Standard citation-style bibliography with a paper link at the end (if URL present in bibentry).
 std_b: Same as std, except with a bold title.
 str: Structured format with upto four lines. 1st line: bold title, 2nd line: author list, 3rd line: venue and time[, 4th line: paper link, if URL present in bibentry).
 str_c: Same as str, but the second and third lines have a color coding.
@@ -45,7 +47,7 @@ str_c: Same as str, but the second and third lines have a color coding.
 
 For a working example which uses the custom syntax with a variety of the above commands, execute the following on the command-line:
 ```bash
-python3 bibtex2html.py -b example/biblio.bib -o example/biblio.html -f str
+python3 bibtex2html.py -b example/biblio.bib -o example/biblio.html -f str -yb -yc 2010
 ```
 The above uses the sample input file in the example folder. A copy of the generated output file (biblio.html) is already present in the example folder for reference.
 

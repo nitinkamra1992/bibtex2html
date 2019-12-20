@@ -272,8 +272,20 @@ def bibtex2html(args):
     sorted_refslist.reverse()
 
     # Generate html string
-    html_string = '<ul>'
+    html_string = ''
+    cur_year = None
+    y_cutoff_hit = False
     for ref in sorted_refslist:
+        if cur_year == None:
+            html_string = html_string + '<ul>'
+        if ref[1]['year'] != cur_year:
+            cur_year = ref[1]['year']
+            if args.year_breaks and not y_cutoff_hit:
+                if (args.year_cutoff is None) or (int(cur_year) >= args.year_cutoff):
+                    html_string = html_string + '\n</ul>' + '\n<h3 style="text-align:center">{}</h3>'.format(cur_year) + '\n<ul>'
+                else:
+                    y_cutoff_hit = True
+                    html_string = html_string + '\n</ul>' + '\n<h3 style="text-align:center">Before {}</h3>'.format(args.year_cutoff) + '\n<ul>'
         html_string = html_string + '\n<li style="margin: {}px 0">'.format(bullet_spacing) + get_html(ref, args.format) + '</li>'
     html_string = html_string + '\n</ul>'
 
@@ -302,6 +314,12 @@ if __name__ == "__main__":
     parser.add_argument("-nobr", "--no_break",
         help='Flag to prevent any <br> tags in the generated HTML.',
         default=False, action='store_true')
+    parser.add_argument("-yb", "--year_breaks",
+        help='Flag to add year headers between the reverse chronologically sorted list of publications.',
+        default=False, action='store_true')
+    parser.add_argument("-yc", "--year_cutoff",
+        help='If <year_breaks> is True, all publications before the <year_cutoff> are grouped together.',
+        default=None, type=int)
     args = parser.parse_args()
 
     global br_sym
