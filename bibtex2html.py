@@ -282,10 +282,10 @@ def bibtex2html(args):
             cur_year = ref[1]['year']
             if args.year_breaks and not y_cutoff_hit:
                 if (args.year_cutoff is None) or (int(cur_year) >= args.year_cutoff):
-                    html_string = html_string + '\n</ul>' + '\n<h3 style="text-align:center">{}</h3>'.format(cur_year) + '\n<ul>'
+                    html_string = html_string + '\n</ul>' + '\n<h2 style="text-align:center">{}</h2>'.format(cur_year) + '\n<ul>'
                 else:
                     y_cutoff_hit = True
-                    html_string = html_string + '\n</ul>' + '\n<h3 style="text-align:center">Before {}</h3>'.format(args.year_cutoff) + '\n<ul>'
+                    html_string = html_string + '\n</ul>' + '\n<h2 style="text-align:center">Before {}</h2>'.format(args.year_cutoff) + '\n<ul>'
         html_string = html_string + '\n<li style="margin: {}px 0">'.format(bullet_spacing) + get_html(ref, args.format) + '</li>'
     html_string = html_string + '\n</ul>'
 
